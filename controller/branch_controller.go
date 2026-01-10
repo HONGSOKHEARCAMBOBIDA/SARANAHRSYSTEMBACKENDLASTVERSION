@@ -4,6 +4,8 @@ import (
 	"HRbackend/config"
 	"HRbackend/constant/share"
 	models "HRbackend/model"
+	branch "HRbackend/request/Branch"
+	branchresponse "HRbackend/response/Branch"
 	"net/http"
 	"strconv"
 
@@ -12,7 +14,7 @@ import (
 )
 
 func CreateBranch(c *gin.Context) {
-	var input models.BranchRequest
+	var input branch.BranchRequestCreate
 	if err := c.ShouldBindJSON(&input); err != nil {
 		share.RespondError(c, http.StatusBadRequest, err.Error())
 		return
@@ -53,7 +55,7 @@ func CreateBranch(c *gin.Context) {
 	share.ResponeSuccess(c, http.StatusOK, "Branch created")
 }
 func GetBranch(c *gin.Context) {
-	var branch []models.Branch
+	var branch []branchresponse.BranchResponse
 	if err := config.DB.Find(&branch).Error; err != nil {
 		share.RespondError(c, http.StatusInternalServerError, err.Error())
 		return
@@ -67,7 +69,7 @@ func UpdateBranch(c *gin.Context) {
 		share.RespondError(c, http.StatusBadRequest, "Invalid ID")
 		return
 	}
-	var updatebranch models.BranchRequest
+	var updatebranch branch.BranchRequestUpdate
 	if err := c.ShouldBindJSON(&updatebranch); err != nil {
 		share.RespondError(c, http.StatusBadRequest, err.Error())
 		return

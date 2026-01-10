@@ -5,7 +5,11 @@ import (
 	"HRbackend/constant/share"
 	"HRbackend/helper"
 	models "HRbackend/model"
+	user "HRbackend/request/User"
+	userresponse "HRbackend/response/User"
+	userpart "HRbackend/response/UserPart"
 	"HRbackend/utils"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -14,104 +18,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func Login(c *gin.Context) {
-
-	var req models.LoginReq
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-
-		share.RespondError(c, http.StatusBadRequest, err.Error())
-
-		return
-	}
-
-	// Find user by phone
-	var user models.User
-	var userpart []models.UserPartResponse
-
-	if err := config.DB.Where("(contact = ? OR email = ? OR username = ?) AND is_active = ?", req.Contact, req.Contact, req.Contact, 1).First(&user).Error; err != nil {
-
-		share.RespondError(c, http.StatusUnauthorized, err.Error())
-
-		return
-	}
-
-	err := config.DB.Table("user_parts up").
-		Select("up.id AS id,p.id AS part_id, p.name AS part_name").
-		Joins("JOIN parts p ON p.id = up.part_id").
-		Where("up.user_id = ?", user.ID).
-		Scan(&userpart).Error
-
-	if err != nil {
-
-		share.RespondError(c, http.StatusInternalServerError, err.Error())
-
-		return
-	}
-
-	// Check password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-
-		share.RespondError(c, http.StatusNotFound, err.Error())
-
-		return
-	}
-
-	// JWT Token generation
-	expirationTime := time.Now().Add(1 * 24 * time.Hour)
-
-	claims := jwt.MapClaims{
-
-		"user_id": user.ID,
-
-		"phone": user.Contact,
-
-		"role_id": user.RoleID,
-
-		"exp": expirationTime.Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenStr, err := token.SignedString(utils.Jwtkey)
-
-	if err != nil {
-
-		share.RespondError(c, http.StatusInternalServerError, err.Error())
-
-		return
-
-	}
-
-	// Send response to client
-	c.JSON(http.StatusOK, gin.H{
-
-		"message": "Logged in successfully",
-
-		"user": gin.H{
-
-			"id": user.ID,
-
-			"name": user.UserName,
-
-			"phone": user.Contact,
-
-			"role_id": user.RoleID,
-
-			"parts": userpart,
-		},
-		"token": tokenStr,
-	})
-}
-
 func Register(c *gin.Context) {
 
-	var input models.UserReqInsert
+	var input user.UserReqInsert
 
 	if err := c.ShouldBind(&input); err != nil {
 
@@ -413,7 +325,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	var updateuser models.UserReqUpdate
+	var updateuser user.UserReqUpdate
 
 	if err := c.ShouldBindJSON(&updateuser); err != nil {
 
@@ -486,7 +398,7 @@ func UpdateUser(c *gin.Context) {
 
 func GetUser(c *gin.Context) {
 
-	var users []models.UserResponse
+	var users []userresponse.UserResponse
 
 	branchID := c.Query("branch_id")
 
@@ -495,6 +407,23 @@ func GetUser(c *gin.Context) {
 	roleID := c.Query("role_id")
 
 	isActive := c.Query("is_active")
+
+	cacheKey := "users:all" +
+		":branch:" + branchID +
+		":role:" + roleID +
+		":name:" + name +
+		":active:" + isActive
+
+	cached, err := utils.Redis.Get(utils.Ctx, cacheKey).Result()
+	if err == nil {
+		// Cache hit
+		var users []userresponse.UserResponse
+		if err := json.Unmarshal([]byte(cached), &users); err == nil {
+			share.RespondDate(c, http.StatusOK, users)
+			return
+		}
+		// If unmarshal fails → ignore cache and query DB
+	}
 
 	db := config.DB.Table("users").Select(`
 
@@ -582,10 +511,10 @@ func GetUser(c *gin.Context) {
 		}
 		//បង្កើត Map ដើម្បីរៀបចំ Part តាម User
 
-		partMap := make(map[int][]models.UserPartResponse)
+		partMap := make(map[int][]userpart.UserPartResponse)
 
 		for _, r := range rows {
-			partMap[r.UserID] = append(partMap[r.UserID], models.UserPartResponse{
+			partMap[r.UserID] = append(partMap[r.UserID], userpart.UserPartResponse{
 				ID:       r.ID,
 				PartID:   r.PartID,
 				PartName: r.PartName,
@@ -597,6 +526,8 @@ func GetUser(c *gin.Context) {
 		}
 
 	}
+	data, _ := json.Marshal(users)
+	utils.Redis.Set(utils.Ctx, cacheKey, data, 30*time.Second)
 
 	share.RespondDate(c, http.StatusOK, users)
 }

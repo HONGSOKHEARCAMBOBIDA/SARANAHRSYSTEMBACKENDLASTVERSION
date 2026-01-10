@@ -14,8 +14,3 @@ type CurrencyResponse struct {
 	Name     string `json:"name"`
 	Isactive bool   `json:"is_active"`
 }
-type CurrencyRequest struct {
-	Code   string `json:"code"`
-	Symbol string `json:"symbol"`
-	Name   string `json:"name"`
-}

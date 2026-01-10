@@ -4,6 +4,7 @@ import (
 	"HRbackend/config"
 	"HRbackend/constant/share"
 	models "HRbackend/model"
+	currency "HRbackend/request/Currency"
 	"net/http"
 	"strconv"
 
@@ -12,7 +13,7 @@ import (
 )
 
 func CreateCurrency(c *gin.Context) {
-	var input models.CurrencyRequest
+	var input currency.CurrencyRequestCreate
 	if err := c.ShouldBindJSON(&input); err != nil {
 		share.RespondError(c, http.StatusBadRequest, err.Error())
 		return
@@ -55,7 +56,7 @@ func UpdateCurrency(c *gin.Context) {
 		share.RespondError(c, http.StatusBadRequest, "Invalid ID")
 		return
 	}
-	var updatecurrency models.CurrencyRequest
+	var updatecurrency currency.CurrencyRequestUpdate
 	if err := c.ShouldBindJSON(&updatecurrency); err != nil {
 		share.RespondError(c, http.StatusBadRequest, err.Error())
 		return

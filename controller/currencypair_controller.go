@@ -4,6 +4,8 @@ import (
 	"HRbackend/config"
 	"HRbackend/constant/share"
 	models "HRbackend/model"
+	currencypairgo "HRbackend/request/Currency_Pair.go"
+	currencypairres "HRbackend/response/Currency_Pair.go"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +13,7 @@ import (
 )
 
 func CreateCurrencyPair(c *gin.Context) {
-	var input models.CurrencyPairRequest
+	var input currencypairgo.CurrencyPairRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		share.RespondError(c, http.StatusBadRequest, err.Error())
 		return
@@ -46,7 +48,7 @@ func CreateCurrencyPair(c *gin.Context) {
 }
 
 func GetCurrencypair(c *gin.Context) {
-	var currencyPairs []models.CurrencyPairResponse
+	var currencyPairs []currencypairres.CurrencyPairResponse
 
 	db := config.DB.Table("currency_pairs").Select(`
 		currency_pairs.id AS id,
@@ -75,7 +77,7 @@ func GetCurrencypair(c *gin.Context) {
 }
 func UpdateCurrencyPaire(c *gin.Context) {
 	id := c.Param("id")
-	var updatecurrencypare models.CurrencyPairRequest
+	var updatecurrencypare currencypairgo.CurrencyPairRequest
 	if err := c.ShouldBindJSON(&updatecurrencypare); err != nil {
 		share.RespondError(c, http.StatusBadRequest, err.Error())
 		return

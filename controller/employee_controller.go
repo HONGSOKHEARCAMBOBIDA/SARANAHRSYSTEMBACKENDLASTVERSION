@@ -5,6 +5,8 @@ import (
 	"HRbackend/constant/share"
 	"HRbackend/helper"
 	models "HRbackend/model"
+	employeerequstupdate "HRbackend/request/Employee"
+	employeeres "HRbackend/response/Employee"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,7 +18,7 @@ import (
 )
 
 func GetEmployee(c *gin.Context) {
-	var employees []models.EmployeeResponse
+	var employees []employeeres.EmployeeResponse
 
 	branchID := c.Query("branch_id")
 	name := c.Query("name")
@@ -139,7 +141,7 @@ func GetEmployee(c *gin.Context) {
 func UpdateEmployee(c *gin.Context) {
 	id := c.Param("id")
 
-	var updateemployee models.EmployeeRequestUpdate
+	var updateemployee employeerequstupdate.EmployeeRequestUpdate
 
 	var employeeprofile models.EmployeeProfile
 

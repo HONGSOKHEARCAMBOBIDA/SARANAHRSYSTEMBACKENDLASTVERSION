@@ -11,6 +11,7 @@ import (
 )
 
 func GetCommunes(c *gin.Context) {
+
 	districtIDStr := c.Param("id")
 
 	// Convert to int (optional but safe)

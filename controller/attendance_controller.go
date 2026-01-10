@@ -5,6 +5,8 @@ import (
 	"HRbackend/constant/share"
 	"HRbackend/helper"
 	models "HRbackend/model"
+	attendance "HRbackend/request/Attendance"
+	attendanceres "HRbackend/response/Attendance"
 	"HRbackend/utils"
 	"fmt"
 
@@ -17,7 +19,7 @@ import (
 // 📍 Check In Function
 func CheckIn(c *gin.Context) {
 
-	var req models.AttendanceLogRequestCreate
+	var req attendance.AttendanceLogRequestCreate
 
 	userID, ok := helper.GetUserID(c)
 
@@ -197,7 +199,7 @@ func CheckIn(c *gin.Context) {
 }
 
 func CheckOut(c *gin.Context) {
-	var req models.AttendanceLogRequestCreate
+	var req attendance.AttendanceLogRequestCreate
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -318,7 +320,7 @@ func CheckOut(c *gin.Context) {
 }
 
 func GetAttendanceLog(c *gin.Context) {
-	var attendance []models.AttendanceResponse
+	var attendance []attendanceres.AttendanceResponse
 
 	branchID := c.Query("branch_id")
 	isLate := c.Query("islate")

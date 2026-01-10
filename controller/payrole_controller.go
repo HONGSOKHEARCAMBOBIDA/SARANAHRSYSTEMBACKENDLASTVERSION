@@ -129,10 +129,22 @@ func CreatePayroll(c *gin.Context) {
 
 func GetPayRoll(c *gin.Context) {
 	var payroll []models.PayResponse
+	var user models.User
 	year := c.Query("year")
 	month := c.Query("month")
 	BranchID := c.Query("branch_id")
 	CurrencyID := c.Query("currency_id")
+
+	userID, ok := helper.GetUserID(c)
+	if !ok {
+		share.RespondError(c, http.StatusUnauthorized, "Please Login")
+		return
+	}
+
+	if err := config.DB.First(&user, userID).Error; err != nil {
+		share.RespondError(c, http.StatusNotFound, err.Error())
+		return
+	}
 
 	db := config.DB.Table("payrolls").Select(`
 		payrolls.id AS id,
@@ -205,6 +217,7 @@ func GetPayRoll(c *gin.Context) {
 	if CurrencyID != "" {
 		db = db.Where("payrolls.currency_id =?", CurrencyID)
 	}
+	db = db.Where("( ? IN (1,4,7)) OR e.id =?", user.RoleID, user.EmployeeID)
 	db = db.Order("id desc")
 	if err := db.Scan(&payroll).Error; err != nil {
 		share.RespondError(c, http.StatusInternalServerError, err.Error())

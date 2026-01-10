@@ -1,15 +1,36 @@
 package routes
 
 import (
+	"HRbackend/constant/permission"
 	"HRbackend/controller"
+	AttendanceController "HRbackend/controller/Attendance"
+	AuthController "HRbackend/controller/Auth"
+	BranchController "HRbackend/controller/Branch"
+	CommunceController "HRbackend/controller/Communce"
+	CurrencyController "HRbackend/controller/Currency"
+	CurrencyPairController "HRbackend/controller/Currency_Pair"
+	DistrictController "HRbackend/controller/District"
+	EmployeeController "HRbackend/controller/Employee"
+	ProvinceController "HRbackend/controller/Province"
+	VillageController "HRbackend/controller/Village"
 	"HRbackend/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine) {
+	branchcontroller := BranchController.NewBranchController()
+	currencycontroller := CurrencyController.NewCurrencyController()
+	authcontroller := AuthController.NewAuthController()
+	CommunceController := CommunceController.NewCommunceController()
+	DistrictController := DistrictController.NewDistrictController()
+	ProvinceController := ProvinceController.NewProvinceController()
+	villageController := VillageController.NewVillageController()
+	attendanceController := AttendanceController.NewAttendanceController()
+	currencypairController := CurrencyPairController.NewCurrencyPairController()
+	employeeController := EmployeeController.NewEmployeeController()
 	// Public routes
-	r.POST("/login", middleware.RateLimiterMiddleware(), controller.Login)
+	r.POST("/login", middleware.RateLimiterMiddleware(), authcontroller.Login)
 
 	r.Static("/profileimage", "./public/profileimage")
 	r.Static("/qrcodeimage", "./public/qrcodeimage")
@@ -40,34 +61,34 @@ func SetupRoutes(r *gin.Engine) {
 		auth.PUT("changestatusshift/:id", middleware.PermissionMiddleware("edit-shift"), controller.ChangeStatusShift)
 
 		// employee
-		auth.GET("viewemployee", middleware.PermissionMiddleware("view-employee"), controller.GetEmployee)
+		auth.GET("viewemployee", middleware.PermissionMiddleware(permission.ViewEmployee), employeeController.GetEmployees)
 
-		auth.PUT("editemployee/:id", middleware.PermissionMiddleware("edit-employee"), controller.UpdateEmployee)
+		auth.PUT("editemployee/:id", middleware.PermissionMiddleware(permission.EditEmployee), employeeController.UpdateEmployee)
 
-		auth.PUT("changestatusemployee/:id", middleware.PermissionMiddleware("change-status-employee"), controller.ChangeStatusEmployee)
+		auth.PUT("changestatusemployee/:id", middleware.PermissionMiddleware(permission.ChangeStatusEmployee), employeeController.ChangeStatusEmployee)
 
-		auth.PUT("promoteemployee/:id", middleware.PermissionMiddleware("edit-employee"), controller.PromoteEmployee)
+		auth.PUT("promoteemployee/:id", middleware.PermissionMiddleware(permission.EditEmployee), employeeController.ChangeStatusEmployee)
 
 		// province
-		auth.GET("viewprovince", middleware.PermissionMiddleware("view-province"), controller.GetProvince)
+		auth.GET("viewprovince", middleware.PermissionMiddleware(permission.ViewProvince), ProvinceController.Get)
 
 		// district
-		auth.GET("viewdistrict/:id", middleware.PermissionMiddleware("view-district"), controller.GetDistrict)
+		auth.GET("viewdistrict/:id", middleware.PermissionMiddleware(permission.ViewDistrict), DistrictController.GetDistrict)
 
 		// communce
-		auth.GET("viewcommunce/:id", middleware.PermissionMiddleware("view-communce"), controller.GetCommunes)
+		auth.GET("viewcommunce/:id", middleware.PermissionMiddleware(permission.ViewCommunce), CommunceController.GetCommunes)
 
 		// village
-		auth.GET("viewvillage/:id", middleware.PermissionMiddleware("view-village"), controller.GetVillage)
+		auth.GET("viewvillage/:id", middleware.PermissionMiddleware(permission.ViewVillage), villageController.GetVillage)
 
 		// branch
-		auth.POST("addbranch", middleware.PermissionMiddleware("add-branch"), controller.CreateBranch)
+		auth.POST("addbranch", middleware.PermissionMiddleware(permission.AddBranch), branchcontroller.Create)
 
-		auth.GET("viewbranch", middleware.PermissionMiddleware("view-branch"), controller.GetBranch)
+		auth.GET("viewbranch", middleware.PermissionMiddleware(permission.ViewBranch), branchcontroller.Get)
 
-		auth.PUT("editbranch/:id", middleware.PermissionMiddleware("edit-branch"), controller.UpdateBranch)
+		auth.PUT("editbranch/:id", middleware.PermissionMiddleware(permission.EditBranch), branchcontroller.Update)
 
-		auth.PUT("/changestatusbranch/:id", middleware.PermissionMiddleware("change-status-branch"), controller.ChnageStatusBranch)
+		auth.PUT("/changestatusbranch/:id", middleware.PermissionMiddleware(permission.ChangeStatusBranch), branchcontroller.ChangeStatus)
 
 		// role
 		auth.GET("viewrole", middleware.PermissionMiddleware("view-role"), controller.GetRole)
@@ -96,9 +117,9 @@ func SetupRoutes(r *gin.Engine) {
 		auth.PUT("editsalary/:id", middleware.PermissionMiddleware("edit-salary"), controller.UpdateSalary)
 
 		// attendance
-		auth.POST("checkin", middleware.PermissionMiddleware("check-in"), controller.CheckIn)
+		auth.POST("checkin", middleware.PermissionMiddleware(permission.CheckIN), attendanceController.CheckIn)
 
-		auth.POST("/checkout", middleware.PermissionMiddleware("check-out"), controller.CheckOut)
+		auth.POST("/checkout", middleware.PermissionMiddleware(permission.CheckOut), attendanceController.CheckOut)
 
 		auth.GET("viewattendance", middleware.PermissionMiddleware("view-attendance"), controller.GetAttendanceLog)
 
@@ -128,22 +149,22 @@ func SetupRoutes(r *gin.Engine) {
 		auth.DELETE("deletepayroll/:id", middleware.PermissionMiddleware("delete-payroll"), controller.DeletePayroll)
 
 		// Currency
-		auth.POST("addcurrency", middleware.PermissionMiddleware("add-currency"), controller.CreateCurrency)
+		auth.POST("addcurrency", middleware.PermissionMiddleware(permission.AddCurrency), currencycontroller.Create)
 
-		auth.GET("viewcurrency", middleware.PermissionMiddleware("view-currency"), controller.GetCurrency)
+		auth.GET("viewcurrency", middleware.PermissionMiddleware(permission.ViewCurrency), currencycontroller.Get)
 
-		auth.PUT("updatecurrency/:id", middleware.PermissionMiddleware("update-currency"), controller.UpdateCurrency)
+		auth.PUT("updatecurrency/:id", middleware.PermissionMiddleware(permission.EditCurrency), currencycontroller.Update)
 
-		auth.PUT("changestatuscurrency/:id", middleware.PermissionMiddleware("change-status-currency"), controller.ChangeStatusCurrency)
+		auth.PUT("changestatuscurrency/:id", middleware.PermissionMiddleware(permission.ChangeStatusCurrency), currencycontroller.ChangeStatus)
 
 		// CurrencyPair
-		auth.POST("addcurrencypair", middleware.PermissionMiddleware("add-currency-pair"), controller.CreateCurrencyPair)
+		auth.POST("addcurrencypair", middleware.PermissionMiddleware(permission.AddCurrencyPair), currencypairController.CreateCurrencyPair)
 
-		auth.GET("viewcurrencypair", middleware.PermissionMiddleware("view-currency-pair"), controller.GetCurrencypair)
+		auth.GET("viewcurrencypair", middleware.PermissionMiddleware(permission.ViewCurrencyPair), currencypairController.GetCurrencypair)
 
-		auth.PUT("updatecurrencypaire/:id", middleware.PermissionMiddleware("update-currency-pair"), controller.UpdateCurrencyPaire)
+		auth.PUT("updatecurrencypaire/:id", middleware.PermissionMiddleware(permission.EditCurrencyPair), currencypairController.UpdateCurrencyPaire)
 
-		auth.PUT("changestatuscurrencypaire/:id", middleware.PermissionMiddleware("change-status-currency-pair"), controller.ChangeStatusCurrencyPair)
+		auth.PUT("changestatuscurrencypaire/:id", middleware.PermissionMiddleware(permission.ChangeStatusCurrencyPair), currencypairController.ChangeStatusCurrencyPair)
 
 		// Exchange Rate
 		auth.POST("addexchangerate", middleware.PermissionMiddleware("add-exchange-rate"), controller.CreateExchangeRate)

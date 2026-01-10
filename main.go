@@ -18,7 +18,7 @@ func main() {
 
 	// Apply CORS middleware
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://192.168.39.193:5173"}, // your frontend origin
+		AllowOrigins:     []string{"*"}, // your frontend origin
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -30,7 +30,7 @@ func main() {
 	routes.SetupRoutes(r)
 
 	// Start server
-	if err := r.Run("192.168.39.193:8080"); err != nil {
+	if err := r.Run("0.0.0.0:8080"); err != nil {
 		panic(err)
 	}
 }
