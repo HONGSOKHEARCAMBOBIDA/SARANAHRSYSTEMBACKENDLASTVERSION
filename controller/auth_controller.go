@@ -9,7 +9,6 @@ import (
 	userresponse "HRbackend/response/User"
 	userpart "HRbackend/response/UserPart"
 	"HRbackend/utils"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -311,7 +310,7 @@ func ChangeStatusUser(c *gin.Context) {
 		return
 	}
 
-	share.RespondDate(c, 200, result)
+	share.ResponeSuccess(c, 200, "status changed")
 }
 
 func UpdateUser(c *gin.Context) {
@@ -408,23 +407,6 @@ func GetUser(c *gin.Context) {
 
 	isActive := c.Query("is_active")
 
-	cacheKey := "users:all" +
-		":branch:" + branchID +
-		":role:" + roleID +
-		":name:" + name +
-		":active:" + isActive
-
-	cached, err := utils.Redis.Get(utils.Ctx, cacheKey).Result()
-	if err == nil {
-		// Cache hit
-		var users []userresponse.UserResponse
-		if err := json.Unmarshal([]byte(cached), &users); err == nil {
-			share.RespondDate(c, http.StatusOK, users)
-			return
-		}
-		// If unmarshal fails → ignore cache and query DB
-	}
-
 	db := config.DB.Table("users").Select(`
 
         users.id AS id,
@@ -453,9 +435,9 @@ func GetUser(c *gin.Context) {
 
         roles.display_name AS role_name
     `).
-		Joins("INNER JOIN branches ON branches.id = users.branch_id").
-		Joins("INNER JOIN roles ON roles.id = users.role_id").
-		Joins("INNER JOIN employees ON employees.id = users.employee_id")
+		Joins("LEFT JOIN branches ON branches.id = users.branch_id").
+		Joins("LEFT JOIN roles ON roles.id = users.role_id").
+		Joins("LEFT JOIN employees ON employees.id = users.employee_id")
 
 	if branchID != "" {
 
@@ -526,8 +508,6 @@ func GetUser(c *gin.Context) {
 		}
 
 	}
-	data, _ := json.Marshal(users)
-	utils.Redis.Set(utils.Ctx, cacheKey, data, 30*time.Second)
 
 	share.RespondDate(c, http.StatusOK, users)
 }

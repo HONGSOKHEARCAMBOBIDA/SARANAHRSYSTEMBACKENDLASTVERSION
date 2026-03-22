@@ -98,27 +98,27 @@ func (s *employeeService) GetEmployee(filters map[string]string) ([]employeeres.
 		currencies.name AS currency_name
 
     `).
-		Joins("INNER JOIN employee_profiles ON employee_profiles.employee_id = employees.id").
-		Joins("INNER JOIN villages AS birth_village ON birth_village.id = employee_profiles.village_id_of_birth").
-		Joins("INNER JOIN communces AS birth_communce ON birth_communce.id = birth_village.communce_id").
-		Joins("INNER JOIN districts AS birth_district ON birth_district.id = birth_communce.district_id").
-		Joins("INNER JOIN provinces AS birth_province ON birth_province.id = birth_district.province_id").
-		Joins("INNER JOIN villages AS current_village ON current_village.id = employee_profiles.village_id_current_address").
-		Joins("INNER JOIN communces AS current_communce ON current_communce.id = current_village.communce_id").
-		Joins("INNER JOIN districts AS current_district ON current_district.id = current_communce.district_id").
-		Joins("INNER JOIN provinces AS current_province ON current_province.id = current_district.province_id").
-		Joins("INNER JOIN branches ON branches.id = employees.branch_id").
-		Joins("INNER JOIN roles ON roles.id = employees.role_id").
-		Joins("INNER JOIN employee_shifts ON employee_shifts.employee_id = employees.id AND employee_shifts.is_active = 1").
-		Joins("INNER JOIN shifts ON shifts.id = employee_shifts.shift_id").
-		Joins("INNER JOIN salaries ON salaries.employee_shift_id = employee_shifts.id AND salaries.is_active = 1").
-		Joins("INNER JOIN currencies ON currencies.id = salaries.currency_id")
+		Joins("LEFT JOIN employee_profiles ON employee_profiles.employee_id = employees.id").
+		Joins("LEFT JOIN villages AS birth_village ON birth_village.id = employee_profiles.village_id_of_birth").
+		Joins("LEFT JOIN communces AS birth_communce ON birth_communce.id = birth_village.communce_id").
+		Joins("LEFT JOIN districts AS birth_district ON birth_district.id = birth_communce.district_id").
+		Joins("LEFT JOIN provinces AS birth_province ON birth_province.id = birth_district.province_id").
+		Joins("LEFT JOIN villages AS current_village ON current_village.id = employee_profiles.village_id_current_address").
+		Joins("LEFT JOIN communces AS current_communce ON current_communce.id = current_village.communce_id").
+		Joins("LEFT JOIN districts AS current_district ON current_district.id = current_communce.district_id").
+		Joins("LEFT JOIN provinces AS current_province ON current_province.id = current_district.province_id").
+		Joins("LEFT JOIN branches ON branches.id = employees.branch_id").
+		Joins("LEFT JOIN roles ON roles.id = employees.role_id").
+		Joins("LEFT JOIN employee_shifts ON employee_shifts.employee_id = employees.id AND employee_shifts.is_active = 1").
+		Joins("LEFT JOIN shifts ON shifts.id = employee_shifts.shift_id").
+		Joins("LEFT JOIN salaries ON salaries.employee_shift_id = employee_shifts.id AND salaries.is_active = 1").
+		Joins("LEFT JOIN currencies ON currencies.id = salaries.currency_id")
 
 	if value, ok := filters["branch_id"]; ok && value != "" {
 		db = db.Where("employees.branch_id =?", value)
 	}
 	if value, ok := filters["name"]; ok && value != "" {
-		db = db.Where("emplyees.name_en LIKE ? OR employees.name_kh LIKE ?", "%"+value+"%", "%"+value+"%")
+		db = db.Where("employees.name_en LIKE ? OR employees.name_kh LIKE ?", "%"+value+"%", "%"+value+"%")
 	}
 	if value, ok := filters["role_id"]; ok && value != "" {
 		db = db.Where("employees.role_id =?", value)
@@ -151,6 +151,7 @@ func (s *employeeService) UpdateEmployee(
 	c *gin.Context,
 ) error {
 
+	// ✅ 1. Update Employee Main Table
 	result := s.db.Model(&models.Employee{}).
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
@@ -170,60 +171,68 @@ func (s *employeeService) UpdateEmployee(
 		return result.Error
 	}
 
-	if result.RowsAffected == 0 {
-		return errors.New("employee not found")
-	}
+	// ✅ 2. Get Employee Profile
 	var employeeprofile models.EmployeeProfile
-	if err := s.db.Where("employee_profiles.employee_id =?", id).First(&employeeprofile).Error; err != nil {
+	if err := s.db.Where("employee_id = ?", id).First(&employeeprofile).Error; err != nil {
 		return err
 	}
-	if profileImage != nil {
-		if !helper.ProtectImage(profileImage) {
-			return errors.New("រូបភាពមិនត្រូវបានអនុញ្ញាតិបញ្ចូលទេ")
-		}
-		if employeeprofile.ProfileImage != "" {
-			oldProfilePath := filepath.Join("public/profileimage", employeeprofile.ProfileImage)
-			if _, err := os.Stat(oldProfilePath); err == nil {
-				// os.stat is check file exist or not
-				os.Remove(oldProfilePath)
 
+	// ✅ 3. Handle Profile Image Upload
+	if profileImage != nil {
+
+		// delete old image
+		if employeeprofile.ProfileImage != "" {
+			oldPath := filepath.Join("public/profileimage", employeeprofile.ProfileImage)
+			if _, err := os.Stat(oldPath); err == nil {
+				_ = os.Remove(oldPath)
 			}
-			newProfileImageName, err := s.saveUploadedFile(profileImage, "public/profileimage", c)
-			if err != nil {
-				return errors.New("កែរូបថ្មីមិនបាន")
-			}
-			employeeprofile.ProfileImage = newProfileImageName
 		}
-		if qrImage != nil {
-			if !helper.ProtectImage(qrImage) {
-				return errors.New("រូបភាពមិនត្រូវបានអនុញ្ញាតិបញ្ចូលទេ")
-			}
-			if employeeprofile.QrCodeBankAccount != "" {
-				oldQRPath := filepath.Join("public/qrcodeimage", employeeprofile.QrCodeBankAccount)
-				if _, err := os.Stat(oldQRPath); err == nil {
-					os.Remove(oldQRPath)
-				}
-			}
-			newQRImageName, err := s.saveUploadedFile(qrImage, "public/qrcodeimage", c)
-			if err != nil {
-				return errors.New("កែរូបថ្មីមិនបាន")
-			}
-			employeeprofile.QrCodeBankAccount = newQRImageName
+
+		// save new image
+		newFileName, err := s.saveUploadedFile(profileImage, "public/profileimage", c)
+		if err != nil {
+			return errors.New("កែរូបថ្មីមិនបាន")
 		}
-		employeeprofile.DateOfBirth = input.DateOfBirth
-		employeeprofile.VillageIDOfBirht = input.VillageIDOfBirht
-		employeeprofile.MaterialStatus = input.MaterialStatus
-		employeeprofile.VillageIDCurrentAddress = input.VillageIDCurrentAddress
-		employeeprofile.FamilyPhone = input.FamilyPhone
-		employeeprofile.EducationLevel = input.EducationLevel
-		employeeprofile.ExperienceYear = input.ExperienceYear
-		employeeprofile.PreviousComapy = input.PreviousComapy
-		employeeprofile.BankName = input.BankName
-		employeeprofile.Note = input.Note
-		employeeprofile.PositionLevel = input.PositionLevel
-		if err := s.db.Save(&employeeprofile).Error; err != nil {
-			return errors.New("កែប្រែមិនជោគជ័យ")
+
+		employeeprofile.ProfileImage = newFileName
+	}
+
+	// ✅ 4. Handle QR Code Upload
+	if qrImage != nil {
+
+		// delete old QR
+		if employeeprofile.QrCodeBankAccount != "" {
+			oldPath := filepath.Join("public/qrcodeimage", employeeprofile.QrCodeBankAccount)
+			if _, err := os.Stat(oldPath); err == nil {
+				_ = os.Remove(oldPath)
+			}
 		}
+
+		// save new QR
+		newFileName, err := s.saveUploadedFile(qrImage, "public/qrcodeimage", c)
+		if err != nil {
+			return errors.New("កែរូបថ្មីមិនបាន")
+		}
+
+		employeeprofile.QrCodeBankAccount = newFileName
+	}
+
+	// ✅ 5. Update Other Profile Fields (ALWAYS update)
+	employeeprofile.DateOfBirth = input.DateOfBirth
+	employeeprofile.VillageIDOfBirht = input.VillageIDOfBirht
+	employeeprofile.MaterialStatus = input.MaterialStatus
+	employeeprofile.VillageIDCurrentAddress = input.VillageIDCurrentAddress
+	employeeprofile.FamilyPhone = input.FamilyPhone
+	employeeprofile.EducationLevel = input.EducationLevel
+	employeeprofile.ExperienceYear = input.ExperienceYear
+	employeeprofile.PreviousComapy = input.PreviousComapy
+	employeeprofile.BankName = input.BankName
+	employeeprofile.Note = input.Note
+	employeeprofile.PositionLevel = input.PositionLevel
+
+	// ✅ 6. Save Profile
+	if err := s.db.Save(&employeeprofile).Error; err != nil {
+		return errors.New("កែប្រែមិនជោគជ័យ")
 	}
 
 	return nil
