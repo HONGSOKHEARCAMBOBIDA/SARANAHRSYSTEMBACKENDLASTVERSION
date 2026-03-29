@@ -355,6 +355,7 @@ func GetAttendanceLog(c *gin.Context) {
 			attendance_logs.status AS status,
 			employees.name_en AS name_en,
 			employees.name_kh AS name_kh,
+			employee_profiles.profile_image AS employee_profile,
 			roles.id AS role_id,
 			roles.display_name AS role_name,
 			employees.type AS type,
@@ -363,12 +364,13 @@ func GetAttendanceLog(c *gin.Context) {
 			shifts.start_time AS start_time,
 			shifts.end_time AS end_time
 		`).Where("(attendance_logs.create_by = ? OR roles.id IN (1,4,7))", userID).
-		Joins("INNER JOIN employee_shifts ON employee_shifts.id = attendance_logs.employee_shift_id").
-		Joins("INNER JOIN shifts ON shifts.id = employee_shifts.shift_id").
-		Joins("INNER JOIN employees ON employees.id = employee_shifts.employee_id").
-		Joins("INNER JOIN branches ON branches.id = attendance_logs.branch_id").
-		Joins("INNER JOIN users u ON u.id =?", userID).
-		Joins("INNER JOIN roles ON roles.id = u.role_id")
+		Joins("LEFT JOIN employee_shifts ON employee_shifts.id = attendance_logs.employee_shift_id").
+		Joins("LEFT JOIN shifts ON shifts.id = employee_shifts.shift_id").
+		Joins("LEFT JOIN employees ON employees.id = employee_shifts.employee_id").
+		Joins("LEFT JOIN employee_profiles ON employee_profiles.employee_id = employees.id").
+		Joins("LEFT JOIN branches ON branches.id = attendance_logs.branch_id").
+		Joins("LEFT JOIN users u ON u.id =?", userID).
+		Joins("LEFT JOIN roles ON roles.id = u.role_id")
 
 	// Optional filters
 	if branchID != "" {

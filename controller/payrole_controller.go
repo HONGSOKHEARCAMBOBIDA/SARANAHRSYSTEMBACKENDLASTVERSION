@@ -157,6 +157,8 @@ func GetPayRoll(c *gin.Context) {
 		e.name_en AS name_en,
 		e.name_kh AS name_kh,
 		e.gender AS gender,
+		ep.profile_image AS profile_image,
+		ep.qr_code_bank_account AS qr_code_bank_account,
 		r.id AS role_id,
 		r.display_name AS role_name,
 		sf.id AS shift_id,
@@ -194,16 +196,17 @@ func GetPayRoll(c *gin.Context) {
 		t.symbol AS base_currency_symbol,
 		payrolls.exchange_rates AS exchange_rate
 	`).
-		Joins("INNER JOIN salaries s ON s.id = payrolls.salary_id").
-		Joins("INNER JOIN employee_shifts es ON es.id = s.employee_shift_id").
-		Joins("INNER JOIN employees e ON e.id = es.employee_id AND es.is_active = 1").
-		Joins("INNER JOIN roles r ON r.id = e.role_id").
-		Joins("INNER JOIN shifts sf ON sf.id = es.shift_id").
-		Joins("INNER JOIN branches b ON b.id = payrolls.branch_id").
-		Joins("INNER JOIN currencies c ON c.id = payrolls.currency_id").
-		Joins("INNER JOIN currencies AS t ON t.id = s.currency_id").
-		Joins("INNER JOIN currency_pairs ON currency_pairs.base_currency_id = s.currency_id AND currency_pairs.target_currency_id = payrolls.currency_id").
-		Joins("INNER JOIN exchange_rates ON exchange_rates.pair_id = currency_pairs.id")
+		Joins("LEFT JOIN salaries s ON s.id = payrolls.salary_id").
+		Joins("LEFT JOIN employee_shifts es ON es.id = s.employee_shift_id").
+		Joins("LEFT JOIN employee_profiles AS ep ON ep.employee_id = es.employee_id").
+		Joins("LEFT JOIN employees e ON e.id = es.employee_id AND es.is_active = 1").
+		Joins("LEFT JOIN roles r ON r.id = e.role_id").
+		Joins("LEFT JOIN shifts sf ON sf.id = es.shift_id").
+		Joins("LEFT JOIN branches b ON b.id = payrolls.branch_id").
+		Joins("LEFT JOIN currencies c ON c.id = payrolls.currency_id").
+		Joins("LEFT JOIN currencies AS t ON t.id = s.currency_id").
+		Joins("LEFT JOIN currency_pairs ON currency_pairs.base_currency_id = s.currency_id AND currency_pairs.target_currency_id = payrolls.currency_id").
+		Joins("LEFT JOIN exchange_rates ON exchange_rates.pair_id = currency_pairs.id")
 
 	if year != "" {
 		db = db.Where("payrolls.year =?", year)

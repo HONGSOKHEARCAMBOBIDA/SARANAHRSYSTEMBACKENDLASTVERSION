@@ -247,12 +247,12 @@ func (as *attendanceService) GetAttendanceLog(filters map[string]string, userID 
 	var attendance []attendanceres.AttendanceResponse
 	db := as.db.Table("attendance_logs").
 		Select(`attendance_logs.*, branches.name AS branch_name, employees.name_en, employees.name_kh, roles.display_name AS role_name, shifts.name AS shift_name, shifts.start_time, shifts.end_time`).
-		Joins("INNER JOIN employee_shifts ON employee_shifts.id = attendance_logs.employee_shift_id").
-		Joins("INNER JOIN shifts ON shifts.id = employee_shifts.shift_id").
-		Joins("INNER JOIN employees ON employees.id = employee_shifts.employee_id").
-		Joins("INNER JOIN branches ON branches.id = attendance_logs.branch_id").
-		Joins("INNER JOIN users u ON u.id = ?", userID).
-		Joins("INNER JOIN roles ON roles.id = u.role_id").
+		Joins("LEFT JOIN employee_shifts ON employee_shifts.id = attendance_logs.employee_shift_id").
+		Joins("LEFT JOIN shifts ON shifts.id = employee_shifts.shift_id").
+		Joins("LEFT JOIN employees ON employees.id = employee_shifts.employee_id").
+		Joins("LEFT JOIN branches ON branches.id = attendance_logs.branch_id").
+		Joins("LEFT JOIN users u ON u.id = ?", userID).
+		Joins("LEFT JOIN roles ON roles.id = u.role_id").
 		Where("(attendance_logs.create_by = ? OR roles.id IN (1,4,7))", userID)
 	if v, ok := filters["branch_id"]; ok && v != "" {
 		db = db.Where("attendance_logs.branch_id = ?", v)

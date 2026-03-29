@@ -58,6 +58,8 @@ type PayResponse struct {
 	ID                            int    `json:"id" gorm:"column:id"`
 	SalaryID                      int    `json:"salary_id" gorm:"column:salary_id"`
 	EmployeeShiftID               int    `json:"employee_shift_id" gorm:"column:employee_shift_id"`
+	EmployeeProfile               string `json:"profile_image" gorm:"column:profile_image"`
+	Qrcodeimage                   string `json:"qr_code_bank_account" gorm:"column:qr_code_bank_account"`
 	BaseSalary                    string `json:"base_salary" gorm:"column:base_salary"`
 	WorkDay                       int    `json:"worked_day" gorm:"column:worked_day"`
 	DailyRate                     string `json:"daily_rate" gorm:"column:daily_rate"`

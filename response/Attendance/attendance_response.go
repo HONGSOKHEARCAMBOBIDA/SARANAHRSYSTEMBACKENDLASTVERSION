@@ -3,6 +3,7 @@ package attendanceres
 type AttendanceResponse struct {
 	ID                int    `json:"id"`
 	EmployeeShiftID   int    `json:"employee_shift_id "`
+	EmployeeProfile   string `json:"employee_profile"`
 	CheckDate         string `json:"check_date"`
 	CheckIn           string `json:"check_in"`
 	CheckOut          string `json:"check_out"`
