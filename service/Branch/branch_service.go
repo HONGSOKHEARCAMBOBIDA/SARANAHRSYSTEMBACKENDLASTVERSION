@@ -31,8 +31,8 @@ func (s *branchService) Create(input branch.BranchRequestCreate) error {
 	}
 	newbranch := models.Branch{
 		Name:      input.Name,
-		Latitude:  input.Latitude,
-		Longitude: input.Longitude,
+		Latitude:  *input.Latitude,
+		Longitude: *input.Longitude,
 		Radius:    input.Radius,
 		IsActive:  1,
 	}
@@ -44,7 +44,7 @@ func (s *branchService) Create(input branch.BranchRequestCreate) error {
 }
 func (s *branchService) GetAll() ([]models.Branch, error) {
 	var branches []models.Branch
-	if err := s.db.Find(&branches).Error; err != nil {
+	if err := s.db.Order("id DESC").Find(&branches).Error; err != nil {
 		return nil, err
 	}
 	return branches, nil

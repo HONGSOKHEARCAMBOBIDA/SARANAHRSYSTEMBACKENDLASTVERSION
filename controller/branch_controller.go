@@ -35,8 +35,8 @@ func CreateBranch(c *gin.Context) {
 
 	newBranch := models.Branch{
 		Name:      input.Name,
-		Latitude:  input.Latitude,
-		Longitude: input.Longitude,
+		Latitude:  *input.Latitude,
+		Longitude: *input.Longitude,
 		Radius:    input.Radius,
 		IsActive:  1,
 	}

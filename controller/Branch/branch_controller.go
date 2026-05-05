@@ -25,6 +25,15 @@ func (bc BranchController) Create(c *gin.Context) {
 		share.RespondError(c, http.StatusBadRequest, err.Error())
 		return
 	}
+	defaultLat := 13.1168673
+	defaultLng := 103.1970699
+	if input.Latitude == nil {
+		input.Latitude = &defaultLat
+	}
+
+	if input.Longitude == nil {
+		input.Longitude = &defaultLng
+	}
 	if err := bc.service.Create(input); err != nil {
 		share.RespondError(c, http.StatusInternalServerError, err.Error())
 		return
