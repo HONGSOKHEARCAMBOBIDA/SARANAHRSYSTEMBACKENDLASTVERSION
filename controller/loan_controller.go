@@ -141,7 +141,7 @@ func GetLoan(c *gin.Context) {
 		Joins("INNER JOIN currencies c ON c.id = loans.currency_id")
 
 	// Permission logic
-	if user.RoleID == 1 || user.RoleID == 4 || user.RoleID == 7 {
+	if user.RoleID == 1 || user.RoleID == 4 || user.RoleID == 7 || user.RoleID == 8 {
 		// admin / hr
 		if branchid != "" {
 			db = db.Where("loans.branch_id = ?", branchid)
