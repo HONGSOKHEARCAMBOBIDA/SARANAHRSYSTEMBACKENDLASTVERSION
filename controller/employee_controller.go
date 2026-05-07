@@ -89,21 +89,21 @@ func GetEmployee(c *gin.Context) {
 		currencies.name AS currency_name
 
     `).
-		Joins("INNER JOIN employee_profiles ON employee_profiles.employee_id = employees.id").
-		Joins("INNER JOIN villages AS birth_village ON birth_village.id = employee_profiles.village_id_of_birth").
-		Joins("INNER JOIN communces AS birth_communce ON birth_communce.id = birth_village.communce_id").
-		Joins("INNER JOIN districts AS birth_district ON birth_district.id = birth_communce.district_id").
-		Joins("INNER JOIN provinces AS birth_province ON birth_province.id = birth_district.province_id").
-		Joins("INNER JOIN villages AS current_village ON current_village.id = employee_profiles.village_id_current_address").
-		Joins("INNER JOIN communces AS current_communce ON current_communce.id = current_village.communce_id").
-		Joins("INNER JOIN districts AS current_district ON current_district.id = current_communce.district_id").
-		Joins("INNER JOIN provinces AS current_province ON current_province.id = current_district.province_id").
-		Joins("INNER JOIN branches ON branches.id = employees.branch_id").
-		Joins("INNER JOIN roles ON roles.id = employees.role_id").
-		Joins("INNER JOIN employee_shifts ON employee_shifts.employee_id = employees.id AND employee_shifts.is_active = 1").
-		Joins("INNER JOIN shifts ON shifts.id = employee_shifts.shift_id").
-		Joins("INNER JOIN salaries ON salaries.employee_shift_id = employee_shifts.id AND salaries.is_active = 1").
-		Joins("INNER JOIN currencies ON currencies.id = salaries.currency_id")
+		Joins("LEFT JOIN employee_profiles ON employee_profiles.employee_id = employees.id").
+		Joins("LEFT JOIN villages AS birth_village ON birth_village.id = employee_profiles.village_id_of_birth").
+		Joins("LEFT JOIN communces AS birth_communce ON birth_communce.id = birth_village.communce_id").
+		Joins("LEFT JOIN districts AS birth_district ON birth_district.id = birth_communce.district_id").
+		Joins("LEFT JOIN provinces AS birth_province ON birth_province.id = birth_district.province_id").
+		Joins("LEFT JOIN villages AS current_village ON current_village.id = employee_profiles.village_id_current_address").
+		Joins("LEFT JOIN communces AS current_communce ON current_communce.id = current_village.communce_id").
+		Joins("LEFT JOIN districts AS current_district ON current_district.id = current_communce.district_id").
+		Joins("LEFT JOIN provinces AS current_province ON current_province.id = current_district.province_id").
+		Joins("LEFT JOIN branches ON branches.id = employees.branch_id").
+		Joins("LEFT JOIN roles ON roles.id = employees.role_id").
+		Joins("LEFT JOIN employee_shifts ON employee_shifts.employee_id = employees.id AND employee_shifts.is_active = 1").
+		Joins("LEFT JOIN shifts ON shifts.id = employee_shifts.shift_id").
+		Joins("LEFT JOIN salaries ON salaries.employee_shift_id = employee_shifts.id AND salaries.is_active = 1").
+		Joins("LEFT JOIN currencies ON currencies.id = salaries.currency_id")
 
 	if branchID != "" {
 		db = db.Where("employees.branch_id = ?", branchID)

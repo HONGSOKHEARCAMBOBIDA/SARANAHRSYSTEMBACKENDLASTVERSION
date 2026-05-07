@@ -19,7 +19,7 @@ type EmployeeProfile struct {
 
 	EducationLevel string `json:"education_level" gorm:"column:education_level"`
 
-	ExperienceYear int `json:"experience_years" gorm:"column:experience_years"`
+	ExperienceYear string `json:"experience_years" gorm:"column:experience_years"`
 
 	PreviousComapy string `json:"previous_company" gorm:"column:previous_company"`
 

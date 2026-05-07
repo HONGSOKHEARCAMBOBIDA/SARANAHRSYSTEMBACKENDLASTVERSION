@@ -17,7 +17,7 @@ type EmployeeRequestUpdate struct {
 	VillageIDCurrentAddress int    `form:"village_id_current_address"`
 	FamilyPhone             string `form:"family_phone"`
 	EducationLevel          string `form:"education_level"`
-	ExperienceYear          int    `form:"experience_years"`
+	ExperienceYear          string `form:"experience_years"`
 	PreviousComapy          string `form:"previous_company"`
 	BankName                string `form:"bank_name" gorm:"column:bank_name"`
 	BankAccountNumber       string `form:"bank_account_number"`

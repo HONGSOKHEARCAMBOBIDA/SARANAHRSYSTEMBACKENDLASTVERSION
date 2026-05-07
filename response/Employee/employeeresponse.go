@@ -29,7 +29,7 @@ type EmployeeResponse struct {
 	ProvinceNameCurrentAddress string `json:"province_name_current_address"`
 	FamilyPhone                string `json:"family_phone" gorm:"column:family_phone"`
 	EducationLevel             string `json:"education_level" gorm:"column:education_level"`
-	ExperienceYear             int    `json:"experience_years" gorm:"column:experience_years"`
+	ExperienceYear             string `json:"experience_years" gorm:"column:experience_years"`
 	PreviousComapy             string `json:"previous_company" gorm:"column:previous_company"`
 	BankName                   string `json:"bank_name" gorm:"column:bank_name"`
 	BankAccountNumber          string `json:"bank_account_number" gorm:"column:bank_account_number"`

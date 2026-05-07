@@ -14,11 +14,40 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+func ChangePassword(c *gin.Context) {
+	idparam := c.Param("id")
+	id, err := strconv.Atoi(idparam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+
+	var input struct {
+		NewPassword string `json:"new_password"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	hashed := utils.HashPassword(input.NewPassword)
+
+	if err := config.DB.Model(&models.User{}).
+		Where("id = ?", id).
+		Update("password", hashed).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
+}
 
 func Register(c *gin.Context) {
 
@@ -30,8 +59,6 @@ func Register(c *gin.Context) {
 
 		return
 	}
-
-	hashedPassword := utils.HashPassword(input.Password)
 
 	file, err := c.FormFile("profileimage")
 
@@ -188,16 +215,18 @@ func Register(c *gin.Context) {
 
 		return
 	}
-
+	username := strings.ReplaceAll(strings.ToLower(input.NameEn), "         ", "")
+	email := fmt.Sprintf("%s168@gmail.com", username)
+	password := utils.HashPassword("123456")
 	user := models.User{
 
 		BranchID: input.BranchID,
 
-		UserName: input.UserName,
+		UserName: username,
 
-		Email: input.Email,
+		Email: email,
 
-		Password: hashedPassword, // ✅ Use hashed
+		Password: password,
 
 		Contact: input.Contact,
 
@@ -262,6 +291,8 @@ func Register(c *gin.Context) {
 		DailyRate: float64(input.BaseSalary) / float64(input.WorkedDay),
 
 		EffectTiveDate: time.Now(), // field type must be time.Time
+
+		ExpireDate: nil,
 
 		CurrencyID: input.CurrencyID,
 	}

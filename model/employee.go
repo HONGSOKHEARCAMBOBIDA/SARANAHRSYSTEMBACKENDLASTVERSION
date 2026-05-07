@@ -11,5 +11,6 @@ type Employee struct {
 	RoleID           int    `json:"role_id"`
 	HireDate         string `json:"hire_date"`
 	PromoteDate      string `json:"promote_date"`
+	IsPromote        bool   `json:"is_promote"`
 	Type             int    `json:"type"`
 }

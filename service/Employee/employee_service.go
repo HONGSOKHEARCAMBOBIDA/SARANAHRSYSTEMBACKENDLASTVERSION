@@ -269,8 +269,13 @@ func (s *employeeService) ChangeStatusEmployee(id int) error {
 }
 
 func (s *employeeService) PromoteEmployee(id int) error {
+	now := time.Now().Format("2006-01-02")
 
-	result := s.db.Model(&models.Employee{}).Where("id =?", id).Update("is_promote", gorm.Expr("!is_promote"))
+	result := s.db.Model(&models.Employee{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"is_promote":   gorm.Expr("NOT is_promote"),
+		"promote_date": gorm.Expr("CASE WHEN is_promote = 0 THEN ? ELSE NULL END", now),
+	})
+
 	if result.Error != nil {
 		return result.Error
 	}

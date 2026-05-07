@@ -7,12 +7,6 @@ type UserReqInsert struct {
 
 	NameKh string `form:"name_kh" binding:"required"`
 
-	UserName string `form:"username"`
-
-	Email string `form:"email" binding:"required,email"`
-
-	Password string `form:"password" binding:"required"`
-
 	Gender int `form:"gender" binding:"required"`
 
 	Contact string `form:"contact" binding:"required"`
@@ -49,7 +43,7 @@ type UserReqInsert struct {
 
 	EducationLevel string `form:"education_level" binding:"required"`
 
-	ExperienceYear int `form:"experience_years" binding:"required"`
+	ExperienceYear string `form:"experience_years" binding:"required"`
 
 	PreviousComapy string `form:"previous_company" binding:"required"`
 

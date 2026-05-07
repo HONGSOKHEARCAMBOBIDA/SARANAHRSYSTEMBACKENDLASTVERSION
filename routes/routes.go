@@ -49,6 +49,7 @@ func SetupRoutes(r *gin.Engine) {
 
 		auth.GET("/viewuser1", middleware.PermissionMiddleware("view-user"), controller.GetUser)
 
+		auth.PUT("/changepassword/:id", middleware.PermissionMiddleware("change-password"), controller.ChangePassword)
 		// shift
 		auth.POST("shift", middleware.PermissionMiddleware("add-shift"), controller.CreateShift)
 
@@ -67,7 +68,7 @@ func SetupRoutes(r *gin.Engine) {
 
 		auth.PUT("changestatusemployee/:id", middleware.PermissionMiddleware(permission.ChangeStatusEmployee), employeeController.ChangeStatusEmployee)
 
-		auth.PUT("promoteemployee/:id", middleware.PermissionMiddleware(permission.EditEmployee), employeeController.ChangeStatusEmployee)
+		auth.PUT("promoteemployee/:id", middleware.PermissionMiddleware(permission.EditEmployee), employeeController.PromoteEmployee)
 
 		// province
 		auth.GET("viewprovince", middleware.PermissionMiddleware(permission.ViewProvince), ProvinceController.Get)
