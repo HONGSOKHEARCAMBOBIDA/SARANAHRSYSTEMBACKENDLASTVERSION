@@ -78,7 +78,7 @@ func CheckIn(c *gin.Context) {
 	if err := config.DB.Where("employee_shift_id = ? AND check_date = ?", req.EmployeeShiftID, currentDate).
 		First(&existingLog).Error; err == nil {
 
-		share.RespondError(c, http.StatusNotFound, "You have already checked in today")
+		share.RespondError(c, http.StatusInternalServerError, "You have already checked in today")
 
 		return
 	}

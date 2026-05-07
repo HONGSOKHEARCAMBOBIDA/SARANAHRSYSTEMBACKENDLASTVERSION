@@ -118,7 +118,7 @@ func SetupRoutes(r *gin.Engine) {
 		auth.PUT("editsalary/:id", middleware.PermissionMiddleware("edit-salary"), controller.UpdateSalary)
 
 		// attendance
-		auth.POST("checkin", middleware.PermissionMiddleware(permission.CheckIN), attendanceController.CheckIn)
+		auth.POST("checkin", middleware.PermissionMiddleware(permission.CheckIN), controller.CheckIn)
 
 		auth.POST("/checkout", middleware.PermissionMiddleware(permission.CheckOut), attendanceController.CheckOut)
 
